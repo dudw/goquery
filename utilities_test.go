@@ -158,6 +158,35 @@ func TestText_MultiSelection(t *testing.T) {
 	}
 }
 
+func TestText_EmptySelection(t *testing.T) {
+	doc, err := NewDocumentFromReader(strings.NewReader(textNodes))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// An empty selection has no text nodes to walk, so the result is empty
+	// and the call must not panic.
+	got := Text(doc.Find(".no-such-thing"), &TextOptions{Separator: " ", Trim: true})
+	if got != "" {
+		t.Errorf("want empty string, got %q", got)
+	}
+}
+
+func TestText_KeepFiltersAll(t *testing.T) {
+	doc, err := NewDocumentFromReader(strings.NewReader(textNodes))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// When Keep rejects every text node, nothing is joined and the result is
+	// empty rather than a string of separators.
+	keep := func(n *html.Node) bool { return false }
+	got := Text(doc.Find("#content"), &TextOptions{Separator: " ", Trim: true, Keep: keep})
+	if got != "" {
+		t.Errorf("want empty string, got %q", got)
+	}
+}
+
 func TestOuterHtml(t *testing.T) {
 	doc, err := NewDocumentFromReader(strings.NewReader(allNodes))
 	if err != nil {
